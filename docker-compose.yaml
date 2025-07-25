@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: songs
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./songs.sql:/docker-entrypoint-initdb.d/songs.sql:ro
+    ports:
+      - "5432:5432"
+
+  bot:
+    build: .
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    command: python main.py
+
+volumes:
+  pgdata:
