@@ -55,3 +55,25 @@ def delete_setlist(setlist_id):
         with conn.cursor() as cur:
             cur.execute("DELETE FROM setlists WHERE id = %s", (setlist_id,))
             conn.commit()
+
+
+def fetch_all_setlists():
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT s.id, s.name, s.created_at, COUNT(ss.song_id) as song_count "
+                "FROM setlists s "
+                "LEFT JOIN setlist_songs ss ON s.id = ss.setlist_id "
+                "GROUP BY s.id, s.name, s.created_at "
+                "ORDER BY s.id"
+            )
+            rows = cur.fetchall()
+            return [dict(row) for row in rows]
+
+
+def get_setlist_by_id(setlist_id):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM setlists WHERE id = %s", (setlist_id,))
+            row = cur.fetchone()
+            return dict(row) if row else None
