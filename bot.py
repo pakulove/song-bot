@@ -37,14 +37,16 @@ def start_command(update: Update, context: CallbackContext):
     text = (
         "<b>🎵 Бот для работы с песнями команды прославления \"Голос Божий\"</b>\n\n"
         "<b>Команды:</b>\n"
-        "• /songs — список всех песен (разделены на Поклонение и Прославление)\n"
-        "• /song &lt;id&gt; — открыть песню по номеру\n"
-        "• /search &lt;текст&gt; — поиск по названию, тексту или переводу\n\n"
+        "• /songs — список всех песен\n"
+        "• /worship - песни поклонения\n"
+        "• /glorification - песни прославления\n"
+        "• /song номер — открыть песню по номеру\n"
+        "• /search текст — поиск по названию, тексту или переводу\n\n"
         "<b>Работа с сетами:</b>\n"
         "• /sets — список всех сетов\n"
-        "• /set &lt;id&gt; — открыть сет по номеру\n"
-        "• /newset &lt;имя&gt; &lt;id1,id2,id3&gt; — создать сет\n"
-        "• /delset &lt;id&gt; — удалить сет\n\n"
+        "• /set номер — открыть сет по номеру\n"
+        "• /newset \"имя сета в кавычках\" номера_через_запятую — создать сет\n"
+        "• /delset номер — удалить сет\n\n"
     )
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
@@ -62,14 +64,14 @@ def format_song(song, show_lyrics=False):
     
     return (
         f"<b>{song['title']}{title_en}</b>\n"
-        f"{lyrics_part}"
-        f"{separator}"
         f"\n<b>{mode_text}</b> №<code>{song['id']}</code>\n"
         f"BPM: <b>{song['bpm']}</b>\n"
         f"Тональность: <b>{song['key_letter']}</b>\n"
         f"Плэйбэк: {playback}\n"
         f"Аккорды: {chords}\n"
         f"Заметки: {notes}\n"
+        f"{separator}"
+        f"{lyrics_part}"
     )
 
 
@@ -102,10 +104,58 @@ def songs_command(update: Update, context: CallbackContext):
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
+def worship_command(update: Update, context: CallbackContext):
+    songs = fetch_songs()
+    if not songs:
+        update.message.reply_text("Песен не найдено.")
+        return
+    
+    poklonenie = [song for song in songs if song.get("type") == 0]
+    if not poklonenie:
+        update.message.reply_text("Песен поклонения не найдено.")
+        return
+    
+    count = len(poklonenie)
+    if count % 10 == 1 and count % 100 != 11:
+        count_text = f"Найдено {count} песня:"
+    elif count % 10 in [2, 3, 4] and count % 100 not in [12, 13, 14]:
+        count_text = f"Найдено {count} песни:"
+    else:
+        count_text = f"Найдено {count} песен:"
+    
+    song_list = "\n\n".join([format_song_short(song) for song in poklonenie])
+    text = f"{count_text}\n\n{song_list}"
+    update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
+def glorification_command(update: Update, context: CallbackContext):
+    songs = fetch_songs()
+    if not songs:
+        update.message.reply_text("Песен не найдено.")
+        return
+    
+    proslavlenie = [song for song in songs if song.get("type") == 1]
+    if not proslavlenie:
+        update.message.reply_text("Песен прославления не найдено.")
+        return
+    
+    count = len(proslavlenie)
+    if count % 10 == 1 and count % 100 != 11:
+        count_text = f"Найдено {count} песня:"
+    elif count % 10 in [2, 3, 4] and count % 100 not in [12, 13, 14]:
+        count_text = f"Найдено {count} песни:"
+    else:
+        count_text = f"Найдено {count} песен:"
+    
+    song_list = "\n\n".join([format_song_short(song) for song in proslavlenie])
+    text = f"{count_text}\n\n{song_list}"
+    update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
 def song_command(update: Update, context: CallbackContext):
     args = context.args
     if not args or not args[0].isdigit():
-        update.message.reply_text("Используйте: /song <id>")
+        update.message.reply_text("Используйте: /song номер_песни\nНапример: /song 21")
         return
     song_id = int(args[0])
     song = fetch_song_by_id(song_id)
@@ -126,7 +176,7 @@ def song_command(update: Update, context: CallbackContext):
 
 def search_command(update: Update, context: CallbackContext):
     if not context.args:
-        update.message.reply_text("Используйте: /search <текст для поиска>")
+        update.message.reply_text("Используйте: /search текст_для_поиска\nНапример: /search чести и хвалы")
         return
     query = " ".join(context.args).lower()
     songs = fetch_songs()
@@ -147,15 +197,33 @@ def search_command(update: Update, context: CallbackContext):
 
 def newset_command(update: Update, context: CallbackContext):
     if not context.args or len(context.args) < 2:
-        update.message.reply_text("Используйте: /newset <имя> <id1,id2,id3>")
+        update.message.reply_text("Используйте: /newset \"имя сета в кавычках\" id1,id2,id3\nНапример: /newset \"18_11_2025\" 1,4,18")
         return
-    name = context.args[0]
-    ids_part = context.args[1]
+    
+    args_str = " ".join(context.args)
+    name = ""
+    ids_part = ""
+    
+    if args_str.startswith('"'):
+        end_quote = args_str.find('"', 1)
+        if end_quote == -1:
+            update.message.reply_text("Не найдена закрывающая кавычка в имени сета.")
+            return
+        name = args_str[1:end_quote]
+        ids_part = args_str[end_quote + 1:].strip()
+    else:
+        name = context.args[0]
+        ids_part = context.args[1]
+    
+    if not name:
+        update.message.reply_text("Имя сета не может быть пустым.")
+        return
+    
     try:
-        song_ids = [int(x) for x in ids_part.split(",") if x.isdigit()]
+        song_ids = [int(x) for x in ids_part.split(",") if x.strip().isdigit()]
     except Exception:
         update.message.reply_text(
-            "Ошибка в формате номеров песен. Пример: /newset myset 1,2,3"
+            "Ошибка в формате номеров песен. Пример: /newset \"myset\" 1,2,3"
         )
         return
     if not song_ids:
@@ -173,7 +241,7 @@ def newset_command(update: Update, context: CallbackContext):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     song_list = "\n".join([f"{i + 1}. {song['title']}" for i, song in enumerate(songs)])
-    text = f"Сет <b>№{setlist_id} - {name}</b>\n\n{song_list}:"
+    text = f"<b>{setlist_id}. {name}</b> ({len(songs)} песен)\n\n{song_list}"
     update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
 
 
@@ -325,7 +393,7 @@ def callback_handler(update: Update, context: CallbackContext):
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 song_list = "\n".join([f"{i + 1}. {song['title']}" for i, song in enumerate(songs)])
-                text = f"Сет <b>№{setlist_id} - {setlist['name']}</b>\n\n{song_list}:"
+                text = f"<b>{setlist_id}. {setlist['name']}</b> ({len(songs)} песен)\n\n{song_list}"
                 query.edit_message_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
                 logger.info("edit_message_text (меню) выполнен")
 
@@ -346,16 +414,16 @@ def sets_command(update: Update, context: CallbackContext):
     parts = []
     for setlist in setlists:
         song_count = setlist.get("song_count", 0)
-        parts.append(f"<b>№{setlist['id']}</b> - {setlist['name']} ({song_count} песен)")
+        parts.append(f"<b>{setlist['id']}. {setlist['name']}</b> ({song_count} песен)")
     
-    text = "<b>Список сетов:</b>\n\n" + "\n".join(parts)
+    text = "\n".join(parts)
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
 def set_command(update: Update, context: CallbackContext):
     args = context.args
     if not args or not args[0].isdigit():
-        update.message.reply_text("Используйте: /set <id>")
+        update.message.reply_text("Используйте: /set номер\nНапример: /set 61")
         return
     
     setlist_id = int(args[0])
@@ -366,7 +434,7 @@ def set_command(update: Update, context: CallbackContext):
     
     songs = get_setlist_songs(setlist_id)
     if not songs:
-        update.message.reply_text(f"Сет <b>№{setlist_id} - {setlist['name']}</b> пуст.", parse_mode=ParseMode.HTML)
+        update.message.reply_text(f"<b>{setlist_id}. {setlist['name']}</b> пуст.", parse_mode=ParseMode.HTML)
         return
     
     keyboard = [
@@ -380,19 +448,19 @@ def set_command(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     song_list = "\n".join([f"{i + 1}. {song['title']}" for i, song in enumerate(songs)])
-    text = f"Сет <b>№{setlist_id}: {setlist['name']}</b>\n\n{song_list}"
+    text = f"<b>{setlist_id}. {setlist['name']}</b> ({len(songs)} песен)\n\n{song_list}"
     update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
 
 
 def delset_command(update: Update, context: CallbackContext):
     if not context.args or not context.args[0].isdigit():
-        update.message.reply_text("Используйте: /delset <id>")
+        update.message.reply_text("Используйте: /delset номер\nНапример: /delset 31")
         return
     setlist_id = int(context.args[0])
     from db import delete_setlist
 
     delete_setlist(setlist_id)
-    update.message.reply_text(f"Сет №{setlist_id} удалён.")
+    update.message.reply_text(f"Сет №{setlist_id} удалён.", parse_mode=ParseMode.HTML)
 
 
 def main():
@@ -401,6 +469,8 @@ def main():
 
     dp.add_handler(CommandHandler("start", start_command))
     dp.add_handler(CommandHandler("songs", songs_command))
+    dp.add_handler(CommandHandler("worship", worship_command))
+    dp.add_handler(CommandHandler("glorification", glorification_command))
     dp.add_handler(CommandHandler("song", song_command, pass_args=True))
     dp.add_handler(CommandHandler("search", search_command, pass_args=True))
     dp.add_handler(CommandHandler("newset", newset_command, pass_args=True))

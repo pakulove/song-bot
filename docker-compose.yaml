@@ -8,7 +8,7 @@ services:
       POSTGRES_DB: songs
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./songs.sql:/docker-entrypoint-initdb.d/songs.sql:ro
+      - actual-dump.sql:/docker-entrypoint-initdb.d/actual-dump.sql:ro
     ports:
       - "5432:5432"
 
