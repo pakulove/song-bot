@@ -23,4 +23,4 @@ services:
     command: python main.py
 
 volumes:
-  pgdata:
+  pgdata2:
