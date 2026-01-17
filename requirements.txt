@@ -2,3 +2,4 @@ python-telegram-bot==13.15
 psycopg2-binary
 python-dotenv
 urllib3<2
+dotenv

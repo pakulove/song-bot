@@ -9,6 +9,8 @@ from telegram.ext import (
     CallbackQueryHandler,
     CommandHandler,
     Dispatcher,
+    MessageHandler,
+    Filters,
     Updater,
 )
 
@@ -39,7 +41,7 @@ def start_command(update: Update, context: CallbackContext):
         "<b>Команды:</b>\n"
         "• /songs — список всех песен\n"
         "• /worship - песни поклонения\n"
-        "• /glorification - песни прославления\n"
+        "• /glory - песни прославления\n"
         "• /song номер — открыть песню по номеру\n"
         "• /search текст — поиск по названию, тексту или переводу\n\n"
         "<b>Работа с сетами:</b>\n"
@@ -77,8 +79,9 @@ def format_song(song, show_lyrics=False):
 
 def format_song_short(song):
     key = f"{song['key_letter']}"
-    title_en = f" ({song['title_en']})" if song.get("title_en") else ""
-    return f"<b>{song['id']}. {song['title']}{title_en}</b> — <i>{key} | {song['bpm']} BPM</i>"
+    title = song['title'].title() if song.get('title') else ""
+    title_en = f" ({song['title_en'].title()})" if song.get("title_en") else ""
+    return f"<b>{song['id']}. {title}{title_en}</b> — <i>{key} | {song['bpm']} BPM</i>"
 
 
 def songs_command(update: Update, context: CallbackContext):
@@ -128,7 +131,7 @@ def worship_command(update: Update, context: CallbackContext):
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
-def glorification_command(update: Update, context: CallbackContext):
+def glory_command(update: Update, context: CallbackContext):
     songs = fetch_songs()
     if not songs:
         update.message.reply_text("Песен не найдено.")
@@ -152,12 +155,8 @@ def glorification_command(update: Update, context: CallbackContext):
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
-def song_command(update: Update, context: CallbackContext):
-    args = context.args
-    if not args or not args[0].isdigit():
-        update.message.reply_text("Используйте: /song номер_песни\nНапример: /song 21")
-        return
-    song_id = int(args[0])
+def perform_song(song_id, update: Update):
+    """Выполняет открытие песни по ID"""
     song = fetch_song_by_id(song_id)
     if not song:
         update.message.reply_text("Песня не найдена.")
@@ -174,11 +173,22 @@ def song_command(update: Update, context: CallbackContext):
     )
 
 
-def search_command(update: Update, context: CallbackContext):
-    if not context.args:
-        update.message.reply_text("Используйте: /search текст_для_поиска\nНапример: /search чести и хвалы")
+def song_command(update: Update, context: CallbackContext):
+    args = context.args
+    if not args or not args[0].isdigit():
+        # Режим ожидания номера песни
+        context.user_data["waiting_for_song"] = True
+        update.message.reply_text("Отправьте номер песни в следующем сообщении.\nНапример: 21")
         return
-    query = " ".join(context.args).lower()
+    song_id = int(args[0])
+    perform_song(song_id, update)
+    # Сбрасываем флаг ожидания, если он был установлен
+    context.user_data.pop("waiting_for_song", None)
+
+
+def perform_search(query_text, update: Update):
+    """Выполняет поиск песен по запросу"""
+    query = query_text.lower()
     songs = fetch_songs()
     results = []
     for song in songs:
@@ -195,12 +205,57 @@ def search_command(update: Update, context: CallbackContext):
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
-def newset_command(update: Update, context: CallbackContext):
-    if not context.args or len(context.args) < 2:
-        update.message.reply_text("Используйте: /newset \"имя сета в кавычках\" id1,id2,id3\nНапример: /newset \"18_11_2025\" 1,4,18")
+def search_command(update: Update, context: CallbackContext):
+    if not context.args:
+        # Режим ожидания поискового запроса
+        context.user_data["waiting_for_search"] = True
+        update.message.reply_text("Отправьте поисковый запрос в следующем сообщении.")
         return
     
-    args_str = " ".join(context.args)
+    # Режим с аргументами - выполняем поиск сразу
+    query = " ".join(context.args)
+    perform_search(query, update)
+    # Сбрасываем флаг ожидания, если он был установлен
+    context.user_data.pop("waiting_for_search", None)
+
+
+def message_handler(update: Update, context: CallbackContext):
+    """Обрабатывает текстовые сообщения, если пользователь ожидает ввод данных"""
+    text = update.message.text
+    
+    # Проверяем ожидание поискового запроса
+    if context.user_data.get("waiting_for_search"):
+        context.user_data.pop("waiting_for_search", None)
+        perform_search(text, update)
+        return
+    
+    # Проверяем ожидание номера песни
+    if context.user_data.get("waiting_for_song"):
+        context.user_data.pop("waiting_for_song", None)
+        if text.isdigit():
+            perform_song(int(text), update)
+        else:
+            update.message.reply_text("Пожалуйста, отправьте число (номер песни).")
+        return
+    
+    # Проверяем ожидание данных для создания сета
+    if context.user_data.get("waiting_for_newset"):
+        context.user_data.pop("waiting_for_newset", None)
+        perform_newset(text, update)
+        return
+    
+    # Проверяем ожидание номера сета для удаления
+    if context.user_data.get("waiting_for_delset"):
+        context.user_data.pop("waiting_for_delset", None)
+        if text.isdigit():
+            perform_delset(int(text), update)
+        else:
+            update.message.reply_text("Пожалуйста, отправьте число (номер сета).")
+        return
+
+
+def perform_newset(args_str, update: Update):
+    """Выполняет создание сета из строки аргументов"""
     name = ""
     ids_part = ""
     
@@ -212,8 +267,13 @@ def newset_command(update: Update, context: CallbackContext):
         name = args_str[1:end_quote]
         ids_part = args_str[end_quote + 1:].strip()
     else:
-        name = context.args[0]
-        ids_part = context.args[1]
+        # Если нет кавычек, пробуем разделить по пробелу
+        parts = args_str.split(None, 1)
+        if len(parts) < 2:
+            update.message.reply_text("Неверный формат. Используйте: \"имя сета\" id1,id2,id3\nНапример: \"18_11_2025\" 1,4,18")
+            return
+        name = parts[0]
+        ids_part = parts[1]
     
     if not name:
         update.message.reply_text("Имя сета не может быть пустым.")
@@ -223,7 +283,7 @@ def newset_command(update: Update, context: CallbackContext):
         song_ids = [int(x) for x in ids_part.split(",") if x.strip().isdigit()]
     except Exception:
         update.message.reply_text(
-            "Ошибка в формате номеров песен. Пример: /newset \"myset\" 1,2,3"
+            "Ошибка в формате номеров песен. Пример: \"myset\" 1,2,3"
         )
         return
     if not song_ids:
@@ -239,10 +299,27 @@ def newset_command(update: Update, context: CallbackContext):
         ]
         for i, song in enumerate(songs)
     ]
+    # Добавляем кнопку "Открыть все"
+    keyboard.append([
+        InlineKeyboardButton("📄 Открыть все", callback_data=f"setall_{setlist_id}")
+    ])
     reply_markup = InlineKeyboardMarkup(keyboard)
     song_list = "\n".join([f"{i + 1}. {song['title']}" for i, song in enumerate(songs)])
     text = f"<b>{setlist_id}. {name}</b> ({len(songs)} песен)\n\n{song_list}"
     update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
+
+
+def newset_command(update: Update, context: CallbackContext):
+    if not context.args or len(context.args) < 2:
+        # Режим ожидания данных для создания сета
+        context.user_data["waiting_for_newset"] = True
+        update.message.reply_text("Отправьте данные для создания сета в следующем сообщении.\n\nФормат: \"имя сета в кавычках\" id1,id2,id3\nНапример: \"18_11_2025\" 1,4,18")
+        return
+    
+    args_str = " ".join(context.args)
+    perform_newset(args_str, update)
+    # Сбрасываем флаг ожидания, если он был установлен
+    context.user_data.pop("waiting_for_newset", None)
 
 
 def callback_handler(update: Update, context: CallbackContext):
@@ -295,6 +372,42 @@ def callback_handler(update: Update, context: CallbackContext):
             return
         
         # Обрабатываем callback'и для сетов
+        # Сначала проверяем "setall_" (должно быть до "set_", т.к. "setall_" начинается с "set_")
+        elif data.startswith("setall_"):
+            setlist_id = int(data.split("_")[1])
+            setlist = get_setlist_by_id(setlist_id)
+            if not setlist:
+                query.edit_message_text("Сет не найден.")
+                return
+            songs = get_setlist_songs(setlist_id)
+            if not songs:
+                query.edit_message_text("Сет пуст.")
+                return
+            
+            # Собираем тексты песен
+            songs_with_lyrics = []
+            for song in songs:
+                lyrics = song.get("lyrics") or ""
+                if lyrics:
+                    songs_with_lyrics.append(lyrics)
+            
+            if not songs_with_lyrics:
+                query.edit_message_text("В песнях сета нет текстов.")
+                return
+            
+            # Удаляем кнопки из исходного сообщения
+            query.edit_message_reply_markup(reply_markup=None)
+            
+            # Отправляем каждый текст отдельным сообщением
+            for lyrics in songs_with_lyrics:
+                query.message.reply_text(
+                    lyrics,
+                    parse_mode=ParseMode.HTML,
+                    disable_web_page_preview=True,
+                )
+            
+            logger.info(f"Отправлено {len(songs_with_lyrics)} текстов песен отдельными сообщениями")
+        
         elif data.startswith("set_") or data.startswith("setmenu_"):
             logger.info(f"Получен callback для сета: {query.data}")
             
@@ -391,6 +504,10 @@ def callback_handler(update: Update, context: CallbackContext):
                     ]
                     for i, song in enumerate(songs)
                 ]
+                # Добавляем кнопку "Открыть все"
+                keyboard.append([
+                    InlineKeyboardButton("📄 Открыть все", callback_data=f"setall_{setlist_id}")
+                ])
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 song_list = "\n".join([f"{i + 1}. {song['title']}" for i, song in enumerate(songs)])
                 text = f"<b>{setlist_id}. {setlist['name']}</b> ({len(songs)} песен)\n\n{song_list}"
@@ -445,6 +562,10 @@ def set_command(update: Update, context: CallbackContext):
         ]
         for i, song in enumerate(songs)
     ]
+    # Добавляем кнопку "Открыть все"
+    keyboard.append([
+        InlineKeyboardButton("📄 Открыть все", callback_data=f"setall_{setlist_id}")
+    ])
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     song_list = "\n".join([f"{i + 1}. {song['title']}" for i, song in enumerate(songs)])
@@ -452,15 +573,23 @@ def set_command(update: Update, context: CallbackContext):
     update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
 
 
-def delset_command(update: Update, context: CallbackContext):
-    if not context.args or not context.args[0].isdigit():
-        update.message.reply_text("Используйте: /delset номер\nНапример: /delset 31")
-        return
-    setlist_id = int(context.args[0])
+def perform_delset(setlist_id, update: Update):
+    """Выполняет удаление сета по ID"""
     from db import delete_setlist
-
     delete_setlist(setlist_id)
     update.message.reply_text(f"Сет №{setlist_id} удалён.", parse_mode=ParseMode.HTML)
+
+
+def delset_command(update: Update, context: CallbackContext):
+    if not context.args or not context.args[0].isdigit():
+        # Режим ожидания номера сета для удаления
+        context.user_data["waiting_for_delset"] = True
+        update.message.reply_text("Отправьте номер сета для удаления в следующем сообщении.\nНапример: 31")
+        return
+    setlist_id = int(context.args[0])
+    perform_delset(setlist_id, update)
+    # Сбрасываем флаг ожидания, если он был установлен
+    context.user_data.pop("waiting_for_delset", None)
 
 
 def main():
@@ -470,7 +599,7 @@ def main():
     dp.add_handler(CommandHandler("start", start_command))
     dp.add_handler(CommandHandler("songs", songs_command))
     dp.add_handler(CommandHandler("worship", worship_command))
-    dp.add_handler(CommandHandler("glorification", glorification_command))
+    dp.add_handler(CommandHandler("glory", glory_command))
     dp.add_handler(CommandHandler("song", song_command, pass_args=True))
     dp.add_handler(CommandHandler("search", search_command, pass_args=True))
     dp.add_handler(CommandHandler("newset", newset_command, pass_args=True))
@@ -478,6 +607,8 @@ def main():
     dp.add_handler(CommandHandler("set", set_command, pass_args=True))
     dp.add_handler(CommandHandler("delset", delset_command, pass_args=True))
     dp.add_handler(CallbackQueryHandler(callback_handler))
+    # Обработчик текстовых сообщений для команд в режиме ожидания (должен быть после CommandHandler)
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
 
     updater.start_polling(allowed_updates=["message", "callback_query"])
     updater.idle()

@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    image: postgres:16-alpine
     restart: always
     environment:
       POSTGRES_USER: test
@@ -13,6 +13,7 @@ services:
       - "5432:5432"
 
   bot:
+    restart: always
     build: .
     depends_on:
       - db
