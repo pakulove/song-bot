@@ -58,22 +58,34 @@ def copy_table(src_table, dst_document):
             for p in cell.paragraphs:
                 copy_paragraph(p, cells[i].paragraphs[0]._element.getparent().part)
 
-
 def split_lyrics(lyrics: str):
-    """
-    Разделяет строки с аккордами и текст на русском.
-    - Строка считается аккордной, если есть аккордные символы и пробелы.
-    - Убираем строки с ключевыми словами Вступление, Интро.
-    - Строки с Тэг, Интерлют, Кода, Проигрыш убираем двоеточие.
-    - Строки полностью на английском идут в chords.
-    - Две пустые строки подряд заменяются на одну.
-    """
-    chord_symbols = r'[A-GH][#b]?m?(?:aug|dim|sus|add)?[0-9]?[/]?[A-GH]?[#b]?m?'
-    chord_regex = re.compile(chord_symbols)
     fix_keywords = ["Вступление", "Интро", "Тэг", "Интерлют", "Кода", "Проигрыш", "Инструментал"]
 
+    chord_pattern = r'^[A-GH][#b]?m?(?:aug|dim|sus|add)?[0-9]?(?:/[A-GH][#b]?m?)?$'
+    chord_token = re.compile(chord_pattern)
+    english_letter = re.compile(r'[A-H]')  # любая английская буква аккорда
+
+    special_tokens = set('|:()Xx0123456789')
+
+    def is_chord_line(line: str):
+        # если есть английская буква A-H → аккорд
+        if english_letter.search(line):
+            return True
+
+        tokens = line.strip().split()
+        if not tokens:
+            return False
+
+        chord_count = 0
+        for tok in tokens:
+            clean_tok = ''.join(c for c in tok if c not in special_tokens)
+            if not clean_tok:
+                continue
+            if chord_token.match(clean_tok):
+                chord_count += 1
+        return chord_count / max(len(tokens), 1) > 0.5
+
     lines = lyrics.splitlines()
-    chords = []
     lyrics_text = []
 
     prev_empty = False
@@ -87,32 +99,23 @@ def split_lyrics(lyrics: str):
             continue
         prev_empty = False
 
-
-        # исправляем строки с fix_keywords, убираем двоеточие
         matched_keyword = next((kw for kw in fix_keywords if stripped.startswith(kw + ":")), None)
         if matched_keyword:
-            new_line = stripped.replace(matched_keyword + ":", matched_keyword)
-            lyrics_text.append(new_line)
+            lyrics_text.append(matched_keyword)
             continue
 
-        # строки полностью на английском с аккордами
-        if re.match(r'^[A-Za-z0-9\s/#+b-]+$', stripped) and chord_regex.search(stripped):
-            chords.append(stripped)
-            continue
+        if is_chord_line(stripped):
+            continue  # убираем строку
 
-        # строки с аккордами (есть chord_symbols и пробелы)
-        if chord_regex.search(stripped) and stripped.count(' ') >= 1:
-            chords.append(stripped)
-        else:
-            lyrics_text.append(stripped)
+        lyrics_text.append(stripped)
 
-    # удаляем пустые строки в начале и конце
+    # чистка пустых строк в начале и конце
     while lyrics_text and lyrics_text[0] == "":
         lyrics_text.pop(0)
     while lyrics_text and lyrics_text[-1] == "":
         lyrics_text.pop()
 
-    # нормализация: убираем две пустые подряд
+    # нормализация: не более одной пустой строки подряд
     normalized = []
     prev_empty = False
     for line in lyrics_text:
@@ -124,7 +127,7 @@ def split_lyrics(lyrics: str):
             normalized.append(line)
             prev_empty = False
 
-    return '\n'.join(chords), '\n'.join(normalized)
+    return "", '\n'.join(normalized)
 
 def export():
     Path("./export").mkdir(exist_ok=True)
