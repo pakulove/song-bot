@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict tVcXEh1h4tGbP9A9TPSlrBymHgKB7w3nGkxW3b9mG02OpD8D4XYeVmnYs0jVeuR
+\restrict aJyZgOqAbEtuBxhzWwlgaWNcf0EkqRBbjV8dDnJ9UhnQyadz6tf3Kr4VTZ8Nl23
 
 -- Dumped from database version 16.11
 -- Dumped by pg_dump version 18.1
 
--- Started on 2026-01-30 17:44:14 +05
+-- Started on 2026-01-30 17:56:21 +05
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -5184,64 +5184,44 @@ F  Bb/F
 F                       Bb/F
   Ты все чем я дышу
 F                       Bb/F
-  Ты все чем я дышу
+  Ты все чем я живу
 Dm           C        Bb        Bb  Dm    C
-  Твой Дух живет во мне
+  Присутствие Твое святое - во мне
  
 
 Куплет 2:
  
 F                      Bb/F
-  Ты хлеб живой земли
+  Ты - хлеб живой с небес,
 F                      Bb/F
-  Ты хлеб живой земли
+  Ты - хлеб живой с небес,
 Dm          C    Bb         Bb  Dm    C
-  Your very word spoken to me
+  Слова твои наполняют меня.
  
 
 Припев:
  
-          F   C/E   Dm            Bb   Dm   C
-And I I''m desperate for you
-        F   C/E   Dm          Bb         Dm   C
-And I I''m I''m lost without you
+        F   C/E   Dm           
+В тебе
+                      Bb    Dm  C   
+В Тебе нуждаюсь, Иисус,
+
+F   C/E   Dm          
+Тебя 
+               Bb         Dm   C
+Тебя желаю!
  
 
-Куплет 1: 
+Бридж: 
 
-F                     Bb/F
-  Ты все чем я дышу
-F                         Bb/F
-  Ты все чем я дышу
-Dm              C     Bb       Bb   Dm    C
-  Твой Дух живет во мне
- 
-
-Куплет 2: 
-
-F                     Bb/F
-  This is my daily bread
-F                      Bb/F
-  This is my daily bread
-Dm          C    Bb       Bb  Dm    C
-  Your very word spoken to me
- 
-
-Припев: 
-
-          F   C/E   Dm            Bb   Dm   C
-And I I''m desperate for you
-         F   C/E   Dm               Bb   Dm   C
-And I I''m      I''m lost without you
-          F   C/E   Dm            Bb   Dm   C
-And I I''m desperate for you
-         F   C/E   Dm               Bb   Dm   C
-And I I''m      I''m lost without you 
+Bb Dm C
 
 
-Концовка: 
+Ты святый, добрый, праведный, верный 
+терпишь, любишь, держишь, прощаешь нас (2х)
 
-Bb Dm C', false, 'https://kg-music.club/songs/breathe-4', 'размер 6/8', 'F', 0);
+Ты Спаситель, Исцелитель, 
+Ты благой Бог, Ты - Отец наш (2х)', false, 'https://kg-music.club/songs/breathe-4', 'размер 6/8, для гитары 5 капа', 'F', 0);
 INSERT INTO public.songs VALUES (74, 'Наш Бог - Всемогущий', 'Awesome God', 140, 'Куплет 1:
 
           C               G                         D
@@ -6124,11 +6104,11 @@ ALTER TABLE ONLY public.setlist_songs
     ADD CONSTRAINT setlist_songs_songs_fk FOREIGN KEY (id) REFERENCES public.songs(id) ON UPDATE SET NULL ON DELETE SET NULL;
 
 
--- Completed on 2026-01-30 17:44:14 +05
+-- Completed on 2026-01-30 17:56:21 +05
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict tVcXEh1h4tGbP9A9TPSlrBymHgKB7w3nGkxW3b9mG02OpD8D4XYeVmnYs0jVeuR
+\unrestrict aJyZgOqAbEtuBxhzWwlgaWNcf0EkqRBbjV8dDnJ9UhnQyadz6tf3Kr4VTZ8Nl23
 
