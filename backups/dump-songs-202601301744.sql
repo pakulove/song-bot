@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict zKRyf7f0VlGYOOdatL43Ips76pPWNIEqppvKPrYq7gWuAekZDwfe1o9S7hNILr6
+\restrict tVcXEh1h4tGbP9A9TPSlrBymHgKB7w3nGkxW3b9mG02OpD8D4XYeVmnYs0jVeuR
 
 -- Dumped from database version 16.11
 -- Dumped by pg_dump version 18.1
 
--- Started on 2026-01-30 17:41:35 +05
+-- Started on 2026-01-30 17:44:14 +05
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -892,7 +892,7 @@ Cm           Gm                    F
 Cm                        Gm               F       
 Милocть этo вcтрeчa нa пути твoём                 
         Eb                     Cm                    Gm                F
-С Oтцoм, ктo тaк любит и вceм ceрдцeм ждёт!', true, 'https://holychords.pro/27291#Bb', '(для гитары 1 капа A', 'Bb', 0);
+С Oтцoм, ктo тaк любит и вceм ceрдцeм ждёт!', true, 'https://holychords.pro/27291#Bb', 'для гитары 1 капа A', 'Bb', 0);
 INSERT INTO public.songs VALUES (18, 'Египет', 'Egypt', 150, 'Куплет:
 
 Fm                 Db        Ab            Eb
@@ -2764,7 +2764,7 @@ G/H                               C
                            C             G
 Твой путь я принимаю 
                     D                  Em              C      G
-Бог, знаю ты творишь благое все!', true, 'https://kg-music.club/songs/dom-chudes', 'для гитары G 5 капа)', 'C', 0);
+Бог, знаю ты творишь благое все!', true, 'https://kg-music.club/songs/dom-chudes', 'для гитары G 5 капа', 'C', 0);
 INSERT INTO public.songs VALUES (58, 'Ты мой Отец', NULL, 144, 'Куплет 1:
 
            A                H         C#m 
@@ -3992,6 +3992,119 @@ F#7                                   E                H/D#
 Пробужденье начинается с меня. 
            F#7         A     H 
 Бог, вот я, вот я!', false, 'https://holychords.pro/7541', NULL, 'C', 1);
+INSERT INTO public.songs VALUES (31, 'Объят твоим присутствием', 'Nothing Else', 136, 'Вступление:
+
+Dm  F   C
+Dm  F   C
+
+
+Куплет 1:   
+
+                                  Dm          F
+Объят Твоим присутствием
+                                 C
+Я просто быть хочу   у ног Твоих
+                               Dm                   F
+Объят этим святым моментом 
+                           C
+Не буду уходить 
+                                     Dm     F
+Я здесь не для ответов
+                               C
+Ты ничего не должен мне, Иисус
+                                       Dm                    F
+И больше, чем все то, что можешь Ты
+                       C
+Тебя люблю 
+
+
+Бридж:
+
+          F
+Прости мне, я все шел за суетой
+          C
+Прости мне, я все пел, но пел не то
+             F
+Ты верни меня в начало
+                                            C
+Открыто сердце для тебя
+  
+          F
+Прости мне, что принес тебе я нужды
+          C
+Прости мне, только ты один мне нужен
+             F
+Ты верни меня в начало
+                                            C
+Открыто сердце для тебя
+
+
+Куплет 2:   
+
+                                  Dm          F
+Объят Твоим присутствием
+                                 C
+Я просто быть хочу   у ног Твоих
+                               Dm                   F
+Объят этим святым моментом 
+                           C
+Не буду уходить 
+                                     Dm     F
+Я здесь не для ответов
+                               C
+Ты ничего не должен мне, Иисус
+                                       Dm                    F
+И больше, чем все то, что можешь Ты
+                       C
+Тебя люблю
+
+
+Припев: (x2)
+
+                     Dm
+Тебя люблю 
+                   F
+О, Иисус
+                    Am
+О, Иисус 
+                                    G
+Тебя, Иисус, люблю!
+
+
+Проигрыш:
+
+Dm  F  Am  G
+Dm  F  Am  G
+
+
+Припев: (x2)
+
+                     Dm
+Тебя люблю 
+                   F
+О, Иисус
+                    Am
+О, Иисус 
+                                    G
+Тебя, Иисус, люблю!
+
+
+Бридж:    
+
+                              Dm
+Если я буду молчать, 
+                                 F
+то камни возопиют
+                                            Am
+Если не найду что сказать, 
+                                     G
+то горы Тебе воспоют
+                         D                                   F
+Пусть мои уста не умолкают вовек
+                                           Am
+Ведь если я буду молчать
+                                            G
+в чем смысл жизни моей', true, 'https://kg-music.club/songs/tebya-lyublyu-iisus', 'Пэд на ноте C, без плейбека Ab (или D)', 'D', 0);
 INSERT INTO public.songs VALUES (25, 'Кровь', 'The Blood', 150, 'Интро:   
 
 H   F#  E
@@ -4164,120 +4277,7 @@ H
                                       E
 Ведь омыт был  снаружи
                                   H
-Снаружи и изнутри', true, 'https://holychords.pro/69188', '4 капа G D C/ бридж Em G C', 'B', 0);
-INSERT INTO public.songs VALUES (31, 'Объят твоим присутствием', 'Nothing Else', 136, 'Вступление:
-
-Dm  F   C
-Dm  F   C
-
-
-Куплет 1:   
-
-                                  Dm          F
-Объят Твоим присутствием
-                                 C
-Я просто быть хочу   у ног Твоих
-                               Dm                   F
-Объят этим святым моментом 
-                           C
-Не буду уходить 
-                                     Dm     F
-Я здесь не для ответов
-                               C
-Ты ничего не должен мне, Иисус
-                                       Dm                    F
-И больше, чем все то, что можешь Ты
-                       C
-Тебя люблю 
-
-
-Бридж:
-
-          F
-Прости мне, я все шел за суетой
-          C
-Прости мне, я все пел, но пел не то
-             F
-Ты верни меня в начало
-                                            C
-Открыто сердце для тебя
-  
-          F
-Прости мне, что принес тебе я нужды
-          C
-Прости мне, только ты один мне нужен
-             F
-Ты верни меня в начало
-                                            C
-Открыто сердце для тебя
-
-
-Куплет 2:   
-
-                                  Dm          F
-Объят Твоим присутствием
-                                 C
-Я просто быть хочу   у ног Твоих
-                               Dm                   F
-Объят этим святым моментом 
-                           C
-Не буду уходить 
-                                     Dm     F
-Я здесь не для ответов
-                               C
-Ты ничего не должен мне, Иисус
-                                       Dm                    F
-И больше, чем все то, что можешь Ты
-                       C
-Тебя люблю
-
-
-Припев: (x2)
-
-                     Dm
-Тебя люблю 
-                   F
-О, Иисус
-                    Am
-О, Иисус 
-                                    G
-Тебя, Иисус, люблю!
-
-
-Проигрыш:
-
-Dm  F  Am  G
-Dm  F  Am  G
-
-
-Припев: (x2)
-
-                     Dm
-Тебя люблю 
-                   F
-О, Иисус
-                    Am
-О, Иисус 
-                                    G
-Тебя, Иисус, люблю!
-
-
-Бридж:    
-
-                              Dm
-Если я буду молчать, 
-                                 F
-то камни возопиют
-                                            Am
-Если не найду что сказать, 
-                                     G
-то горы Тебе воспоют
-                         D                                   F
-Пусть мои уста не умолкают вовек
-                                           Am
-Ведь если я буду молчать
-                                            G
-в чем смысл жизни моей', true, 'https://kg-music.club/songs/tebya-lyublyu-iisus', 'Пэд на ноте C, без плейбека Ab (или D)', 'D', 0);
+Снаружи и изнутри', true, 'https://holychords.pro/69188', '4 капа G D C бридж Em G C', 'B', 0);
 INSERT INTO public.songs VALUES (71, 'Преклоняюсь', 'I Surrender', 144, 'Куплет 1:  
 
   Dm                                       F                                  C                      A#
@@ -6124,11 +6124,11 @@ ALTER TABLE ONLY public.setlist_songs
     ADD CONSTRAINT setlist_songs_songs_fk FOREIGN KEY (id) REFERENCES public.songs(id) ON UPDATE SET NULL ON DELETE SET NULL;
 
 
--- Completed on 2026-01-30 17:41:35 +05
+-- Completed on 2026-01-30 17:44:14 +05
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict zKRyf7f0VlGYOOdatL43Ips76pPWNIEqppvKPrYq7gWuAekZDwfe1o9S7hNILr6
+\unrestrict tVcXEh1h4tGbP9A9TPSlrBymHgKB7w3nGkxW3b9mG02OpD8D4XYeVmnYs0jVeuR
 
