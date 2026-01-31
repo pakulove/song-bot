@@ -157,10 +157,13 @@ def glory_command(update: Update, context: CallbackContext):
 
 def perform_song(song_id, update: Update):
     """Выполняет открытие песни по ID"""
+    
     song = fetch_song_by_id(song_id)
     if not song:
         update.message.reply_text("Песня не найдена.")
         return
+
+    song_id = song['id']
     
     keyboard = [[InlineKeyboardButton("📖 Развернуть текст", callback_data=f"toggle_lyrics_song_{song_id}_0")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -175,13 +178,12 @@ def perform_song(song_id, update: Update):
 
 def song_command(update: Update, context: CallbackContext):
     args = context.args
-    if not args or not (args[0].isdigit() or args[0]):
+    if not args:
         # Режим ожидания номера песни
         context.user_data["waiting_for_song"] = True
         update.message.reply_text("Отправьте номер или название песни в следующем сообщении.\nНапример: 21 или \"кровь\"")
         return
-    song_id = args[0]
-    perform_song(song_id, update)
+    perform_song(args[0], update)
     # Сбрасываем флаг ожидания, если он был установлен
     context.user_data.pop("waiting_for_song", None)
 
@@ -232,10 +234,7 @@ def message_handler(update: Update, context: CallbackContext):
     # Проверяем ожидание номера песни
     if context.user_data.get("waiting_for_song"):
         context.user_data.pop("waiting_for_song", None)
-        if text.isdigit():
-            perform_song(int(text), update)
-        else:
-            update.message.reply_text("Пожалуйста, отправьте число (номер песни).")
+        perform_song(text, update)
         return
     
     # Проверяем ожидание данных для создания сета
