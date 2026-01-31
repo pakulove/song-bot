@@ -81,11 +81,11 @@ def format_song_short(song):
     key = f"{song['key_letter']}"
     title = song['title'].title() if song.get('title') else ""
     title_en = f" ({song['title_en'].title()})" if song.get("title_en") else ""
-    return f"<b>{song['id']}. {title}{title_en}</b> — <i>{key} | {song['bpm']} BPM</i>"
+    return f"{song['id']}. {title}{title_en} — <i>{key} | {song['bpm']} BPM</i>"
 
 
 def songs_command(update: Update, context: CallbackContext):
-    songs = fetch_songs()
+    songs = fetch_songs("ORDER BY type, title")
     if not songs:
         update.message.reply_text("Песен не найдено.")
         return
@@ -175,12 +175,12 @@ def perform_song(song_id, update: Update):
 
 def song_command(update: Update, context: CallbackContext):
     args = context.args
-    if not args or not args[0].isdigit():
+    if not args or not (args[0].isdigit() or args[0]):
         # Режим ожидания номера песни
         context.user_data["waiting_for_song"] = True
-        update.message.reply_text("Отправьте номер песни в следующем сообщении.\nНапример: 21")
+        update.message.reply_text("Отправьте номер или название песни в следующем сообщении.\nНапример: 21 или \"кровь\"")
         return
-    song_id = int(args[0])
+    song_id = args[0]
     perform_song(song_id, update)
     # Сбрасываем флаг ожидания, если он был установлен
     context.user_data.pop("waiting_for_song", None)

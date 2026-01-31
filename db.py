@@ -8,17 +8,20 @@ def get_conn():
     return psycopg2.connect(dsn=DB_DSN, cursor_factory=RealDictCursor)
 
 
-def fetch_songs():
+def fetch_songs(order_and_filters: str = "ORDER BY title"):
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM songs ORDER BY id")
+            cur.execute(f"SELECT * FROM songs {order_and_filters}")
             return cur.fetchall()
 
 
-def fetch_song_by_id(song_id):
+def fetch_song_by_id(song_id_or_title: str):
+    where = f'id = {song_id_or_title}'
+    if not song_id_or_title.isdigit():
+        where = f"title ilike '%{song_id_or_title}%'"
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM songs WHERE id = %s", (song_id,))
+            cur.execute(f"SELECT * FROM songs WHERE {where}")
             return cur.fetchone()
 
 
