@@ -41,8 +41,8 @@ def start_command(update: Update, context: CallbackContext):
         "<b>Команды:</b>\n"
         "• /songs — список всех песен\n"
         "• /worship - песни поклонения\n"
-        "• /glory - песни прославления\n"
-        "• /song номер_или_имя — открыть песню по номеру или названию\n"
+        "• /praise - песни прославления\n"
+        "• /song номер_или_имя — открыть песню по номеру или названию1\n"
         "• /search текст — поиск по названию, тексту или переводу\n\n"
         "<b>Работа с сетами:</b>\n"
         "• /sets — список всех сетов\n"
@@ -131,7 +131,7 @@ def worship_command(update: Update, context: CallbackContext):
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
-def glory_command(update: Update, context: CallbackContext):
+def praise_command(update: Update, context: CallbackContext):
     songs = fetch_songs()
     if not songs:
         update.message.reply_text("Песен не найдено.")
@@ -598,7 +598,7 @@ def main():
     dp.add_handler(CommandHandler("start", start_command))
     dp.add_handler(CommandHandler("songs", songs_command))
     dp.add_handler(CommandHandler("worship", worship_command))
-    dp.add_handler(CommandHandler("glory", glory_command))
+    dp.add_handler(CommandHandler("praise", praise_command))
     dp.add_handler(CommandHandler("song", song_command, pass_args=True))
     dp.add_handler(CommandHandler("search", search_command, pass_args=True))
     dp.add_handler(CommandHandler("newset", newset_command, pass_args=True))
