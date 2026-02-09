@@ -20,9 +20,9 @@ from export import export, EXPORT_PATH
 from db import (
     create_setlist,
     fetch_all_setlists,
+    fetch_setlist_by_id,
     fetch_song_by_id,
     fetch_songs,
-    get_setlist_by_id,
     get_setlist_songs,
 )
 
@@ -48,7 +48,7 @@ def start_command(update: Update, context: CallbackContext):
         "• /search текст — поиск по названию, тексту или переводу\n\n"
         "<b>Работа с сетами:</b>\n"
         "• /sets — список всех сетов\n"
-        "• /set номер — открыть сет по номеру\n"
+        "• /set номер — открыть сет по номеру или вхождению имени\n"
         "• /newset \"имя сета в кавычках\" номера_через_запятую — создать сет\n"
         "• /delset номер — удалить сет\n\n"
         "<b>Работа с файлами:</b>\n"
@@ -115,14 +115,14 @@ def songs_command(update: Update, context: CallbackContext):
     proslavlenie = [song for song in songs if song.get("type") == 1]
     
     parts = []
-    if poklonenie:
-        parts.append("<b>Поклонение:</b>")
-        parts.append("\n\n".join([format_song_short(song) for song in poklonenie]))
     if proslavlenie:
-        if parts:
-            parts.append("")
         parts.append("<b>Прославление:</b>")
         parts.append("\n\n".join([format_song_short(song) for song in proslavlenie]))
+    if poklonenie:
+        if parts:
+            parts.append("")
+        parts.append("<b>Поклонение:</b>")
+        parts.append("\n\n".join([format_song_short(song) for song in poklonenie]))
     
     text = "\n\n".join(parts)
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
@@ -395,7 +395,7 @@ def callback_handler(update: Update, context: CallbackContext):
         # Сначала проверяем "setall_" (должно быть до "set_", т.к. "setall_" начинается с "set_")
         elif data.startswith("setall_"):
             setlist_id = int(data.split("_")[1])
-            setlist = get_setlist_by_id(setlist_id)
+            setlist = fetch_setlist_by_id(setlist_id)
             if not setlist:
                 query.edit_message_text("Сет не найден.")
                 return
@@ -510,7 +510,7 @@ def callback_handler(update: Update, context: CallbackContext):
             
             elif data.startswith("setmenu_"):
                 setlist_id = int(data.split("_")[1])
-                setlist = get_setlist_by_id(setlist_id)
+                setlist = fetch_setlist_by_id(setlist_id)
                 if not setlist:
                     query.edit_message_text("Сет не найден.")
                     return
@@ -559,16 +559,21 @@ def sets_command(update: Update, context: CallbackContext):
 
 def set_command(update: Update, context: CallbackContext):
     args = context.args
-    if not args or not args[0].isdigit():
-        update.message.reply_text("Используйте: /set номер\nНапример: /set 61")
+    if not args:
+        update.message.reply_text(
+            "Используйте: /set номер_или_часть_имени\nНапример: /set 61 или /set 09.02"
+        )
         return
-    
-    setlist_id = int(args[0])
-    setlist = get_setlist_by_id(setlist_id)
+
+    query = " ".join(args).strip()
+
+    setlist = fetch_setlist_by_id(query)
     if not setlist:
         update.message.reply_text("Сет не найден.")
         return
-    
+
+    setlist_id = setlist["id"]
+
     songs = get_setlist_songs(setlist_id)
     if not songs:
         update.message.reply_text(f"<b>{setlist_id}. {setlist['name']}</b> пуст.", parse_mode=ParseMode.HTML)

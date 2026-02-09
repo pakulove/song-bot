@@ -74,9 +74,11 @@ def fetch_all_setlists():
             return [dict(row) for row in rows]
 
 
-def get_setlist_by_id(setlist_id):
+def fetch_setlist_by_id(setlist_id_or_name: str):
+    where = f"name ilike '%{setlist_id_or_name}%'"
+    if type(setlist_id_or_name) is int or setlist_id_or_name.isdigit():
+        where = f'id = {setlist_id_or_name}'
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM setlists WHERE id = %s", (setlist_id,))
-            row = cur.fetchone()
-            return dict(row) if row else None
+            cur.execute(f"SELECT * FROM setlists WHERE {where}")
+            return cur.fetchone()
