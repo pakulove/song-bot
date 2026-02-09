@@ -42,8 +42,8 @@ def start_command(update: Update, context: CallbackContext):
         "<b>🎵 Бот для работы с песнями команды прославления \"Голос Божий\"</b>\n\n"
         "<b>Команды:</b>\n"
         "• /songs — список всех песен\n"
-        "• /worship - песни поклонения\n"
-        "• /praise - песни прославления\n"
+        "• /worship — песни поклонения\n"
+        "• /praise— песни прославления\n"
         "• /song номер_или_имя — открыть песню по номеру или названию1\n"
         "• /search текст — поиск по названию, тексту или переводу\n\n"
         "<b>Работа с сетами:</b>\n"
@@ -593,7 +593,7 @@ def set_command(update: Update, context: CallbackContext):
     ])
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    song_list = "\n".join([f"{i + 1}. {song['title']}" for i, song in enumerate(songs)])
+    song_list = "\n".join([f"{i + 1}. {song['title']}  —  {song['key_letter']} | {song['bpm']} BPM" for i, song in enumerate(songs)])
     text = f"<b>{setlist_id}. {setlist['name']}</b> ({len(songs)} песен)\n\n{song_list}"
     update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
 
