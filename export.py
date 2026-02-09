@@ -181,4 +181,5 @@ def export():
 
     out.save(EXPORT_PATH)
 
-export()
+if __name__ == "__main__":
+    export()

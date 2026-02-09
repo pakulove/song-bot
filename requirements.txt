@@ -4,3 +4,4 @@ python-dotenv
 urllib3<2
 dotenv
 python-docx
+setuptools==68.2.2

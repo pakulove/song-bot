@@ -1,3 +1,4 @@
+from datetime import date
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +16,7 @@ from telegram.ext import (
 )
 
 from config import BOT_TOKEN
+from export import export, EXPORT_PATH
 from db import (
     create_setlist,
     fetch_all_setlists,
@@ -49,8 +51,27 @@ def start_command(update: Update, context: CallbackContext):
         "• /set номер — открыть сет по номеру\n"
         "• /newset \"имя сета в кавычках\" номера_через_запятую — создать сет\n"
         "• /delset номер — удалить сет\n\n"
+        "<b>Работа с файлами:</b>\n"
+        "• /export — Выгрузить песни в документ Word\n"
     )
     update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
+def export_command(update: Update, context: CallbackContext):
+    """Экспорт всех песен в Word и отправка файла пользователю"""
+    try:
+        update.message.reply_text("Формирование документа, подождите немного...")
+        export()
+        with open(EXPORT_PATH, "rb") as f:
+            filename = f"Песни прославления VoG {date.today().strftime("%d.%m.%Y")}.docx"
+            update.message.reply_document(
+                document=f,
+                filename=filename,
+                caption="Успешно!",
+            )
+    except Exception as e:
+        logger.exception("Ошибка при экспорте песен")
+        update.message.reply_text(f"Ошибка при экспорте песен: {e}")
 
 
 def format_song(song, show_lyrics=False):
@@ -605,6 +626,7 @@ def main():
     dp.add_handler(CommandHandler("sets", sets_command))
     dp.add_handler(CommandHandler("set", set_command, pass_args=True))
     dp.add_handler(CommandHandler("delset", delset_command, pass_args=True))
+    dp.add_handler(CommandHandler("export", export_command))
     dp.add_handler(CallbackQueryHandler(callback_handler))
     # Обработчик текстовых сообщений для команд в режиме ожидания (должен быть после CommandHandler)
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
